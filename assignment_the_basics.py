@@ -3,6 +3,7 @@ age = input('Age: ')
 
 
 def print_user():
+    """ This function prints a user's name and age """
     print(name + " " + age)
 
 
