@@ -14,5 +14,6 @@ def print_names():
     while len(names) > 0:
         names.pop()
 
+
 print_names()
 print(names)
