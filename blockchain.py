@@ -25,6 +25,10 @@ class Blockchain:
         self.load_data()
         self.hosting_node = hosting_node_id
 
+    @property
+    def chain(self):
+        return self.__chain
+
     def get_chain(self):
         return self.__chain[:]
 
@@ -42,13 +46,14 @@ class Blockchain:
                     proof=block['proof'],
                     timestamp=block['timestamp'],
                     transactions=[
-                        Transaction(sender=tx['sender'], recipient=tx['recipient'],  signature=tx['signature'], amount=tx['amount']) for tx in
+                        Transaction(sender=tx['sender'], recipient=tx['recipient'], signature=tx['signature'], amount=tx['amount']) for tx in
                         block['transactions']]
                 ) for block in blockchain]
                 open_transactions = json.loads(file_content[1])
                 updated_txs = []
                 for tx in open_transactions:
                     updated_txs.append(Transaction(sender=tx['sender'], recipient=tx['recipient'], signature=tx['signature'], amount=tx['amount']))
+
                 self.__open_transactions = updated_txs
         except (IOError, IndexError):
             print('Handle Exception...')
@@ -74,6 +79,9 @@ class Blockchain:
         return proof
 
     def get_balance(self):
+        if self.hosting_node is None:
+            return None
+
         participant = self.hosting_node
 
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.__chain]
@@ -116,7 +124,7 @@ class Blockchain:
 
     def mine_block(self):
         if self.hosting_node is None:
-            return False
+            return None
 
         # Get last value
         previous_hash = hash_block(self.__chain[-1])
@@ -133,11 +141,11 @@ class Blockchain:
 
         for tx in block.transactions:
             if not Wallet.verify_transaction(tx):
-                return False
+                return None
 
         copied_transactions.append(reward_transaction)
         self.__chain.append(block)
 
         self.__open_transactions = []
         self.save_data()
-        return True
+        return block
